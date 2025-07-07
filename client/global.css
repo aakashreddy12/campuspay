@@ -1,0 +1,124 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  /**
+   * Tailwind CSS theme
+   * tailwind.config.ts expects the following color variables to be expressed as HSL values.
+   * A different format will require also updating the theme in tailwind.config.ts.
+  */
+  :root {
+    --background: 252 100% 99%;
+    --foreground: 240 15% 9%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 240 15% 9%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 240 15% 9%;
+
+    --primary: 262 90% 50%;
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 220 20% 96%;
+    --secondary-foreground: 240 15% 25%;
+
+    --muted: 220 20% 96%;
+    --muted-foreground: 240 10% 50%;
+
+    --accent: 300 100% 95%;
+    --accent-foreground: 262 90% 50%;
+
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 220 20% 90%;
+    --input: 220 20% 90%;
+    --ring: 262 90% 50%;
+
+    --success: 142 76% 36%;
+    --success-foreground: 0 0% 100%;
+
+    --warning: 38 92% 50%;
+    --warning-foreground: 0 0% 100%;
+
+    --info: 221 83% 53%;
+    --info-foreground: 0 0% 100%;
+
+    --gradient-start: 262 90% 50%;
+    --gradient-end: 300 100% 60%;
+
+    --radius: 0.75rem;
+
+    --sidebar-background: 252 100% 99%;
+    --sidebar-foreground: 240 15% 25%;
+    --sidebar-primary: 262 90% 50%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 300 100% 95%;
+    --sidebar-accent-foreground: 262 90% 50%;
+    --sidebar-border: 220 20% 90%;
+    --sidebar-ring: 262 90% 50%;
+  }
+
+  .dark {
+    --background: 240 15% 6%;
+    --foreground: 0 0% 98%;
+
+    --card: 240 15% 9%;
+    --card-foreground: 0 0% 98%;
+
+    --popover: 240 15% 9%;
+    --popover-foreground: 0 0% 98%;
+
+    --primary: 262 90% 55%;
+    --primary-foreground: 240 15% 6%;
+
+    --secondary: 240 10% 15%;
+    --secondary-foreground: 0 0% 95%;
+
+    --muted: 240 10% 15%;
+    --muted-foreground: 240 5% 65%;
+
+    --accent: 300 60% 20%;
+    --accent-foreground: 300 100% 85%;
+
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 240 10% 18%;
+    --input: 240 10% 18%;
+    --ring: 262 90% 55%;
+
+    --success: 142 76% 36%;
+    --success-foreground: 0 0% 100%;
+
+    --warning: 38 92% 50%;
+    --warning-foreground: 0 0% 100%;
+
+    --info: 221 83% 53%;
+    --info-foreground: 0 0% 100%;
+
+    --gradient-start: 262 90% 55%;
+    --gradient-end: 300 100% 65%;
+
+    --sidebar-background: 240 15% 9%;
+    --sidebar-foreground: 0 0% 95%;
+    --sidebar-primary: 262 90% 55%;
+    --sidebar-primary-foreground: 240 15% 6%;
+    --sidebar-accent: 300 60% 20%;
+    --sidebar-accent-foreground: 300 100% 85%;
+    --sidebar-border: 240 10% 18%;
+    --sidebar-ring: 262 90% 55%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+  }
+}
