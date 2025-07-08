@@ -361,21 +361,39 @@ export function SmartCropModal({
                 />
 
                 {/* Crop Overlay */}
-                {imageLoaded && (
-                  <canvas
-                    ref={canvasRef}
-                    className="absolute top-0 left-0 pointer-events-auto cursor-move"
-                    style={{
-                      width: "100%",
-                      height: "100%",
-                      border: "2px solid #8b5cf6",
-                      boxSizing: "border-box",
-                    }}
-                    onMouseDown={handleCanvasMouseDown}
-                    onMouseMove={handleCanvasMouseMove}
-                    onMouseUp={handleCanvasMouseUp}
-                    onMouseLeave={handleCanvasMouseUp}
-                  />
+                {imageLoaded && imageRef.current && (
+                  <div className="absolute top-0 left-0 w-full h-full pointer-events-none">
+                    <div
+                      className="absolute border-2 border-purple-500 bg-purple-500/10 cursor-move pointer-events-auto"
+                      style={{
+                        left: `${(cropArea.x / imageRef.current.width) * 100}%`,
+                        top: `${(cropArea.y / imageRef.current.height) * 100}%`,
+                        width: `${(cropArea.width / imageRef.current.width) * 100}%`,
+                        height: `${(cropArea.height / imageRef.current.height) * 100}%`,
+                      }}
+                      onMouseDown={handleCanvasMouseDown}
+                      onMouseMove={handleCanvasMouseMove}
+                      onMouseUp={handleCanvasMouseUp}
+                      onMouseLeave={handleCanvasMouseUp}
+                    >
+                      {/* Corner handles */}
+                      <div className="absolute -top-1 -left-1 w-3 h-3 bg-purple-500 border border-white rounded-full"></div>
+                      <div className="absolute -top-1 -right-1 w-3 h-3 bg-purple-500 border border-white rounded-full"></div>
+                      <div className="absolute -bottom-1 -left-1 w-3 h-3 bg-purple-500 border border-white rounded-full"></div>
+                      <div className="absolute -bottom-1 -right-1 w-3 h-3 bg-purple-500 border border-white rounded-full"></div>
+
+                      {/* Center indicator */}
+                      <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-1 h-1 bg-purple-500 rounded-full"></div>
+                    </div>
+
+                    {/* Dimmed overlay outside crop area */}
+                    <div
+                      className="absolute inset-0 bg-black/30 pointer-events-none"
+                      style={{
+                        clipPath: `polygon(0 0, ${(cropArea.x / imageRef.current.width) * 100}% 0, ${(cropArea.x / imageRef.current.width) * 100}% 100%, 0 100%), polygon(${((cropArea.x + cropArea.width) / imageRef.current.width) * 100}% 0, 100% 0, 100% 100%, ${((cropArea.x + cropArea.width) / imageRef.current.width) * 100}% 100%), polygon(${(cropArea.x / imageRef.current.width) * 100}% 0, ${((cropArea.x + cropArea.width) / imageRef.current.width) * 100}% 0, ${((cropArea.x + cropArea.width) / imageRef.current.width) * 100}% ${(cropArea.y / imageRef.current.height) * 100}%, ${(cropArea.x / imageRef.current.width) * 100}% ${(cropArea.y / imageRef.current.height) * 100}%), polygon(${(cropArea.x / imageRef.current.width) * 100}% ${((cropArea.y + cropArea.height) / imageRef.current.height) * 100}%, ${((cropArea.x + cropArea.width) / imageRef.current.width) * 100}% ${((cropArea.y + cropArea.height) / imageRef.current.height) * 100}%, ${((cropArea.x + cropArea.width) / imageRef.current.width) * 100}% 100%, ${(cropArea.x / imageRef.current.width) * 100}% 100%)`,
+                      }}
+                    ></div>
+                  </div>
                 )}
               </div>
 
