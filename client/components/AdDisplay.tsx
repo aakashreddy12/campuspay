@@ -365,11 +365,7 @@ export function AdDisplay({
         </div>
         {showCloseButton && (
           <button
-            onClick={(e) => {
-              e.preventDefault();
-              e.stopPropagation();
-              closeAd(ad.id);
-            }}
+            onClick={(e) => closeAd(ad.id, e)}
             className="absolute top-2 right-2 w-6 h-6 bg-gray-800/50 text-white rounded-full flex items-center justify-center hover:bg-gray-800/70 transition-colors"
           >
             <X className="h-3 w-3" />
@@ -523,11 +519,7 @@ export function AdDisplay({
           </div>
           {showCloseButton && (
             <button
-              onClick={(e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                closeAd(ad.id);
-              }}
+              onClick={(e) => closeAd(ad.id, e)}
               className="absolute top-1 right-1 w-5 h-5 bg-gray-800/50 text-white rounded-full flex items-center justify-center hover:bg-gray-800/70 transition-colors"
             >
               <X className="h-3 w-3" />
