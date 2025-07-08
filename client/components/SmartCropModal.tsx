@@ -434,7 +434,7 @@ export function SmartCropModal({
                         width: `${(cropArea.width / imageRef.current.width) * 100}%`,
                         height: `${(cropArea.height / imageRef.current.height) * 100}%`,
                       }}
-                      onMouseDown={handleCanvasMouseDown}
+                      onMouseDown={handleCropMouseDown}
                       onMouseMove={handleCanvasMouseMove}
                       onMouseUp={handleCanvasMouseUp}
                       onMouseLeave={handleCanvasMouseUp}
