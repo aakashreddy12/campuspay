@@ -27,63 +27,84 @@ function CropPreview({
   scale: number;
 }) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const [previewImageLoaded, setPreviewImageLoaded] = useState(false);
 
   useEffect(() => {
-    if (!canvasRef.current || !imageRef.current) return;
+    if (!canvasRef.current || !imageUrl) return;
 
     const canvas = canvasRef.current;
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
 
-    // Set canvas size to match container
-    const container = canvas.parentElement;
-    if (!container) return;
+    // Create a new image element for the preview
+    const img = new Image();
+    img.onload = () => {
+      setPreviewImageLoaded(true);
 
-    canvas.width = container.clientWidth;
-    canvas.height = container.clientHeight;
+      // Set canvas size to match container
+      const container = canvas.parentElement;
+      if (!container) return;
 
-    // Clear canvas
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
+      const rect = container.getBoundingClientRect();
+      canvas.width = rect.width;
+      canvas.height = rect.height;
 
-    // Calculate scaling to fit the crop area in the preview canvas
-    const scaleX = canvas.width / cropArea.width;
-    const scaleY = canvas.height / cropArea.height;
-    const previewScale = Math.min(scaleX, scaleY);
+      // Clear canvas
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-    // Center the preview
-    const offsetX = (canvas.width - cropArea.width * previewScale) / 2;
-    const offsetY = (canvas.height - cropArea.height * previewScale) / 2;
+      // Calculate scaling to fit the crop area in the preview canvas
+      const scaleX = canvas.width / cropArea.width;
+      const scaleY = canvas.height / cropArea.height;
+      const previewScale = Math.min(scaleX, scaleY);
 
-    ctx.save();
-    ctx.translate(
-      offsetX + (cropArea.width * previewScale) / 2,
-      offsetY + (cropArea.height * previewScale) / 2,
-    );
-    ctx.rotate((rotation * Math.PI) / 180);
-    ctx.scale(scale, scale);
+      // Center the preview
+      const scaledWidth = cropArea.width * previewScale;
+      const scaledHeight = cropArea.height * previewScale;
+      const offsetX = (canvas.width - scaledWidth) / 2;
+      const offsetY = (canvas.height - scaledHeight) / 2;
 
-    // Draw the cropped portion
-    ctx.drawImage(
-      imageRef.current,
-      cropArea.x,
-      cropArea.y,
-      cropArea.width,
-      cropArea.height,
-      -(cropArea.width * previewScale) / 2,
-      -(cropArea.height * previewScale) / 2,
-      cropArea.width * previewScale,
-      cropArea.height * previewScale,
-    );
+      ctx.save();
 
-    ctx.restore();
-  }, [imageRef, cropArea, rotation, scale]);
+      // Apply rotation around center of preview
+      const centerX = offsetX + scaledWidth / 2;
+      const centerY = offsetY + scaledHeight / 2;
+      ctx.translate(centerX, centerY);
+      ctx.rotate((rotation * Math.PI) / 180);
+      ctx.scale(scale, scale);
+      ctx.translate(-scaledWidth / 2, -scaledHeight / 2);
+
+      // Draw the cropped portion
+      ctx.drawImage(
+        img,
+        cropArea.x,
+        cropArea.y,
+        cropArea.width,
+        cropArea.height,
+        0,
+        0,
+        scaledWidth,
+        scaledHeight,
+      );
+
+      ctx.restore();
+    };
+
+    img.src = imageUrl;
+  }, [imageUrl, cropArea, rotation, scale]);
 
   return (
-    <canvas
-      ref={canvasRef}
-      className="w-full h-full object-contain"
-      style={{ backgroundColor: "#f3f4f6" }}
-    />
+    <div className="w-full h-full bg-gray-100 flex items-center justify-center">
+      <canvas
+        ref={canvasRef}
+        className="max-w-full max-h-full"
+        style={{ backgroundColor: "#f3f4f6" }}
+      />
+      {!previewImageLoaded && (
+        <div className="absolute inset-0 flex items-center justify-center text-gray-400 text-xs">
+          Loading Preview...
+        </div>
+      )}
+    </div>
   );
 }
 
