@@ -81,7 +81,34 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         // No session, check localStorage as fallback
         const storedUser = localStorage.getItem("campuspay_user");
         if (storedUser) {
-          localStorage.removeItem("campuspay_user"); // Clear stale data
+          try {
+            const parsedUser = JSON.parse(storedUser);
+            setUser(parsedUser);
+          } catch {
+            localStorage.removeItem("campuspay_user");
+          }
+        } else {
+          // Create mock student user for development
+          const mockUser: User = {
+            id: "mock-student-id",
+            email: "student@example.com",
+            phone: "9876543210",
+            role: "student",
+            name: "Test Student",
+            college: "Mock College",
+            course: "Computer Science",
+            year: 2,
+            gender: "male",
+            walletBalance: 500,
+            rfidId: "RF001",
+            collegeId: "MOCK001",
+            rewardPoints: 100,
+            adConsent: true,
+            parentContact: "9876543211",
+            createdAt: new Date(),
+          };
+          setUser(mockUser);
+          localStorage.setItem("campuspay_user", JSON.stringify(mockUser));
         }
       }
     } catch (error) {

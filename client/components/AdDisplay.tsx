@@ -23,7 +23,7 @@ function MediaRenderer({
 }: MediaRendererProps) {
   const [error, setError] = useState(false);
   const [loading, setLoading] = useState(true);
-  const [videoMuted, setVideoMuted] = useState(true);
+  const [isMuted, setIsMuted] = useState(false);
   const videoRef = useRef<HTMLVideoElement>(null);
 
   const handleError = () => {
@@ -37,39 +37,13 @@ function MediaRenderer({
     setLoading(false);
   };
 
-  const enableSound = () => {
+  const toggleMute = (e: React.MouseEvent) => {
+    e.stopPropagation();
     if (videoRef.current) {
-      videoRef.current.muted = false;
-      setVideoMuted(false);
-      videoRef.current.play().catch(console.error);
+      videoRef.current.muted = !videoRef.current.muted;
+      setIsMuted(videoRef.current.muted);
     }
   };
-
-  useEffect(() => {
-    // Try to enable sound for video ads
-    if (mediaType === "video" && videoRef.current) {
-      const video = videoRef.current;
-
-      // Try to unmute immediately
-      const tryUnmute = () => {
-        video.muted = false;
-        setVideoMuted(false);
-        video.play().catch(() => {
-          // If autoplay with sound fails, keep it muted until user interaction
-          video.muted = true;
-          setVideoMuted(true);
-        });
-      };
-
-      // Try unmuting after video loads
-      if (video.readyState >= 2) {
-        tryUnmute();
-      } else {
-        video.addEventListener("loadeddata", tryUnmute);
-        return () => video.removeEventListener("loadeddata", tryUnmute);
-      }
-    }
-  }, [mediaType]);
 
   if (error) {
     return (
@@ -86,32 +60,26 @@ function MediaRenderer({
   switch (mediaType) {
     case "video":
       return (
-        <div className="relative" style={{ position: "relative" }}>
+        <div className="relative">
           <video
             ref={videoRef}
             src={mediaUrl}
             className={className}
             autoPlay
-            muted={videoMuted}
+            muted={isMuted}
             loop
             playsInline
+            controls={false}
             style={{ objectFit: "cover" }}
             onError={handleError}
             onLoadedData={handleLoad}
-            onClick={enableSound}
           />
-          {videoMuted && (
-            <button
-              onClick={(e) => {
-                e.stopPropagation();
-                enableSound();
-              }}
-              className="absolute bottom-2 right-2 bg-black/50 text-white rounded-full p-2 hover:bg-black/70 transition-colors"
-              style={{ fontSize: "12px" }}
-            >
-              🔊
-            </button>
-          )}
+          <button
+            onClick={toggleMute}
+            className="absolute bottom-2 right-2 bg-black/60 text-white rounded-full w-8 h-8 flex items-center justify-center hover:bg-black/80 transition-colors text-sm"
+          >
+            {isMuted ? "🔇" : "🔊"}
+          </button>
         </div>
       );
 
@@ -206,7 +174,11 @@ export function AdDisplay({
     await AdService.trackClick(user, ad, page);
   };
 
-  const closeAd = (adId: string) => {
+  const closeAd = (adId: string, e?: React.MouseEvent) => {
+    if (e) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
     setClosedAds((prev) => [...prev, adId]);
     onAdClosed?.(adId);
   };
@@ -260,11 +232,7 @@ export function AdDisplay({
         </div>
         {showCloseButton && (
           <button
-            onClick={(e) => {
-              e.preventDefault();
-              e.stopPropagation();
-              closeAd(ad.id);
-            }}
+            onClick={(e) => closeAd(ad.id, e)}
             className="absolute top-2 right-2 z-10 w-6 h-6 bg-gray-800/50 text-white rounded-full flex items-center justify-center hover:bg-gray-800/70 transition-colors"
           >
             <X className="h-3 w-3" />
