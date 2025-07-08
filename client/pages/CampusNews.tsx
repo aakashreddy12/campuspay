@@ -792,7 +792,11 @@ export default function CampusNews() {
                     Sponsored
                   </Badge>
                   <button
-                    onClick={() => handleAdClick(ad)}
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      setClosedAds((prev) => [...prev, ad.id]);
+                    }}
                     className="absolute top-2 right-2 text-gray-400 hover:text-gray-600"
                   >
                     <X className="h-4 w-4" />
@@ -824,7 +828,11 @@ export default function CampusNews() {
             <div key={ad.id} className="fixed bottom-4 left-4 z-50 max-w-sm">
               <div className="bg-white rounded-lg shadow-lg border-2 border-blue-200 p-4 relative">
                 <button
-                  onClick={() => handleAdClick(ad)}
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    setClosedAds((prev) => [...prev, ad.id]);
+                  }}
                   className="absolute top-2 right-2 text-gray-400 hover:text-gray-600"
                 >
                   <X className="h-4 w-4" />

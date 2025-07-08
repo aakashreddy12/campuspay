@@ -4,6 +4,8 @@ import { Navbar } from "@/components/Navbar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import jsPDF from "jspdf";
+import html2canvas from "html2canvas";
 import {
   Card,
   CardContent,
@@ -221,6 +223,206 @@ export default function StudentWallet() {
 
     return true;
   });
+
+  const exportToPDF = async () => {
+    try {
+      const pdf = new jsPDF("p", "mm", "a4");
+      const pageWidth = 190;
+      const pageHeight = 297;
+      const margin = 10;
+
+      // Add header
+      pdf.setFontSize(22);
+      pdf.setTextColor(67, 56, 202); // Purple color
+      pdf.text("CampusPay Wallet Statement", margin, 25);
+
+      // Add user info
+      pdf.setFontSize(12);
+      pdf.setTextColor(0, 0, 0);
+      pdf.text(`Account: ${user?.name || "Student"}`, margin, 40);
+      pdf.text(`RFID ID: ${user?.rfidId || "N/A"}`, margin, 47);
+      pdf.text(
+        `Current Balance: ₹${user?.walletBalance?.toLocaleString() || "0"}`,
+        margin,
+        54,
+      );
+      pdf.text(
+        `Generated on: ${new Date().toLocaleDateString("en-IN")}`,
+        margin,
+        61,
+      );
+
+      // Add line separator
+      pdf.setLineWidth(0.5);
+      pdf.line(margin, 68, pageWidth, 68);
+
+      // Add transaction header
+      pdf.setFontSize(16);
+      pdf.setTextColor(67, 56, 202);
+      pdf.text("Transaction History", margin, 80);
+
+      // Filter info
+      pdf.setFontSize(10);
+      pdf.setTextColor(100, 100, 100);
+      let filterText = `Filter: ${filterType === "all" ? "All Types" : filterType} | Period: ${filterPeriod === "all" ? "All Time" : filterPeriod}`;
+      pdf.text(filterText, margin, 87);
+
+      if (filteredTransactions.length === 0) {
+        pdf.setFontSize(12);
+        pdf.setTextColor(100, 100, 100);
+        pdf.text(
+          "No transactions found for the selected filters.",
+          margin,
+          105,
+        );
+      } else {
+        // Table headers
+        let y = 100;
+        pdf.setFontSize(10);
+        pdf.setTextColor(0, 0, 0);
+        pdf.setFontSize(9);
+
+        // Table column positions
+        const cols = {
+          date: margin,
+          description: margin + 35,
+          type: margin + 110,
+          status: margin + 135,
+          amount: margin + 160,
+        };
+
+        // Header row
+        pdf.setTextColor(67, 56, 202);
+        pdf.text("Date", cols.date, y);
+        pdf.text("Description", cols.description, y);
+        pdf.text("Type", cols.type, y);
+        pdf.text("Status", cols.status, y);
+        pdf.text("Amount", cols.amount, y);
+
+        // Header line
+        y += 2;
+        pdf.setLineWidth(0.3);
+        pdf.line(margin, y, pageWidth, y);
+        y += 8;
+
+        // Transaction rows
+        pdf.setTextColor(0, 0, 0);
+        filteredTransactions.forEach((transaction, index) => {
+          // Check if we need a new page
+          if (y > 270) {
+            pdf.addPage();
+            y = 25;
+
+            // Re-add headers on new page
+            pdf.setTextColor(67, 56, 202);
+            pdf.text("Date", cols.date, y);
+            pdf.text("Description", cols.description, y);
+            pdf.text("Type", cols.type, y);
+            pdf.text("Status", cols.status, y);
+            pdf.text("Amount", cols.amount, y);
+            y += 8;
+            pdf.setTextColor(0, 0, 0);
+          }
+
+          const date = new Date(transaction.timestamp).toLocaleDateString(
+            "en-IN",
+          );
+          const amount =
+            transaction.amount > 0
+              ? `+₹${transaction.amount.toLocaleString()}`
+              : `₹${transaction.amount.toLocaleString()}`;
+
+          // Truncate long descriptions
+          let description = transaction.description;
+          if (description.length > 35) {
+            description = description.substring(0, 32) + "...";
+          }
+
+          pdf.text(date, cols.date, y);
+          pdf.text(description, cols.description, y);
+          pdf.text(transaction.type, cols.type, y);
+          pdf.text(transaction.status, cols.status, y);
+
+          // Color the amount based on positive/negative
+          if (transaction.amount > 0) {
+            pdf.setTextColor(34, 197, 94); // Green
+          } else {
+            pdf.setTextColor(239, 68, 68); // Red
+          }
+          pdf.text(amount, cols.amount, y);
+          pdf.setTextColor(0, 0, 0); // Reset to black
+
+          y += 7;
+
+          // Add subtle line between rows
+          if (index < filteredTransactions.length - 1) {
+            pdf.setDrawColor(220, 220, 220);
+            pdf.setLineWidth(0.1);
+            pdf.line(margin, y - 2, pageWidth, y - 2);
+          }
+        });
+
+        // Add summary section
+        y += 10;
+        if (y > 260) {
+          pdf.addPage();
+          y = 25;
+        }
+
+        pdf.setLineWidth(0.5);
+        pdf.setDrawColor(67, 56, 202);
+        pdf.line(margin, y, pageWidth, y);
+        y += 10;
+
+        pdf.setFontSize(12);
+        pdf.setTextColor(67, 56, 202);
+        pdf.text("Summary", margin, y);
+        y += 10;
+
+        pdf.setFontSize(10);
+        pdf.setTextColor(0, 0, 0);
+
+        const totalTransactions = filteredTransactions.length;
+        const totalCredits = filteredTransactions
+          .filter((t) => t.amount > 0)
+          .reduce((sum, t) => sum + t.amount, 0);
+        const totalDebits = Math.abs(
+          filteredTransactions
+            .filter((t) => t.amount < 0)
+            .reduce((sum, t) => sum + t.amount, 0),
+        );
+
+        pdf.text(`Total Transactions: ${totalTransactions}`, margin, y);
+        y += 7;
+        pdf.text(`Total Credits: ₹${totalCredits.toLocaleString()}`, margin, y);
+        y += 7;
+        pdf.text(`Total Debits: ₹${totalDebits.toLocaleString()}`, margin, y);
+        y += 7;
+        pdf.text(
+          `Net Amount: ₹${(totalCredits - totalDebits).toLocaleString()}`,
+          margin,
+          y,
+        );
+      }
+
+      // Add footer
+      const totalPages = pdf.internal.getNumberOfPages();
+      for (let i = 1; i <= totalPages; i++) {
+        pdf.setPage(i);
+        pdf.setFontSize(8);
+        pdf.setTextColor(100, 100, 100);
+        pdf.text(`Page ${i} of ${totalPages}`, pageWidth - 20, 290);
+        pdf.text("Generated by CampusPay Digital Wallet System", margin, 290);
+      }
+
+      // Save the PDF
+      const fileName = `CampusPay_Statement_${new Date().toISOString().split("T")[0]}.pdf`;
+      pdf.save(fileName);
+    } catch (error) {
+      console.error("Error generating PDF:", error);
+      // You could add a toast notification here for user feedback
+    }
+  };
 
   const generateMockQRCode = () => {
     // Mock QR code for demonstration
@@ -501,9 +703,9 @@ export default function StudentWallet() {
                         <SelectItem value="3months">Last 3 Months</SelectItem>
                       </SelectContent>
                     </Select>
-                    <Button variant="outline" size="sm">
+                    <Button variant="outline" size="sm" onClick={exportToPDF}>
                       <Download className="h-4 w-4 mr-2" />
-                      Export
+                      Export PDF
                     </Button>
                   </div>
                 </div>

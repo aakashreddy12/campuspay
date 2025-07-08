@@ -23,6 +23,8 @@ function MediaRenderer({
 }: MediaRendererProps) {
   const [error, setError] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [isMuted, setIsMuted] = useState(false);
+  const videoRef = useRef<HTMLVideoElement>(null);
 
   const handleError = () => {
     console.error(`Media failed to load: ${mediaUrl}, type: ${mediaType}`);
@@ -33,6 +35,14 @@ function MediaRenderer({
   const handleLoad = () => {
     console.log(`Media loaded successfully: ${mediaUrl}, type: ${mediaType}`);
     setLoading(false);
+  };
+
+  const toggleMute = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (videoRef.current) {
+      videoRef.current.muted = !videoRef.current.muted;
+      setIsMuted(videoRef.current.muted);
+    }
   };
 
   if (error) {
@@ -50,17 +60,48 @@ function MediaRenderer({
   switch (mediaType) {
     case "video":
       return (
-        <video
-          src={mediaUrl}
-          className={className}
-          autoPlay
-          muted
-          loop
-          playsInline
-          style={{ objectFit: "cover" }}
-          onError={handleError}
-          onLoadedData={handleLoad}
-        />
+        <div className="relative">
+          <video
+            ref={videoRef}
+            src={mediaUrl}
+            className={className}
+            autoPlay
+            muted={isMuted}
+            loop
+            playsInline
+            controls={false}
+            style={{ objectFit: "cover" }}
+            onError={handleError}
+            onLoadedData={(e) => {
+              handleLoad();
+              // Ensure video plays after loading
+              const video = e.target as HTMLVideoElement;
+              video.play().catch(() => {
+                // If autoplay fails, try muted autoplay
+                video.muted = true;
+                setIsMuted(true);
+                video.play().catch(console.error);
+              });
+            }}
+            onCanPlay={(e) => {
+              // Ensure video plays when ready
+              const video = e.target as HTMLVideoElement;
+              if (video.paused) {
+                video.play().catch(() => {
+                  video.muted = true;
+                  setIsMuted(true);
+                  video.play().catch(console.error);
+                });
+              }
+            }}
+          />
+          <button
+            onClick={toggleMute}
+            className="absolute bottom-2 right-2 bg-black/60 text-white rounded-full w-8 h-8 flex items-center justify-center hover:bg-black/80 transition-colors text-sm"
+          >
+            {isMuted ? "🔇" : "🔊"}
+          </button>
+        </div>
       );
 
     case "gif":
@@ -154,8 +195,17 @@ export function AdDisplay({
     await AdService.trackClick(user, ad, page);
   };
 
-  const closeAd = (adId: string) => {
-    setClosedAds((prev) => [...prev, adId]);
+  const closeAd = (adId: string, e?: React.MouseEvent) => {
+    if (e) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
+    console.log("Closing ad:", adId);
+    setClosedAds((prev) => {
+      const newClosed = [...prev, adId];
+      console.log("New closed ads:", newClosed);
+      return newClosed;
+    });
     onAdClosed?.(adId);
   };
 
@@ -208,8 +258,9 @@ export function AdDisplay({
         </div>
         {showCloseButton && (
           <button
-            onClick={() => closeAd(ad.id)}
-            className="absolute top-2 right-2 z-10 w-6 h-6 bg-gray-800/50 text-white rounded-full flex items-center justify-center hover:bg-gray-800/70 transition-colors"
+            onClick={(e) => closeAd(ad.id, e)}
+            className="absolute top-2 right-2 z-50 w-6 h-6 bg-gray-800/70 text-white rounded-full flex items-center justify-center hover:bg-gray-800/90 transition-colors shadow-lg"
+            style={{ zIndex: 9999 }}
           >
             <X className="h-3 w-3" />
           </button>
@@ -341,8 +392,9 @@ export function AdDisplay({
         </div>
         {showCloseButton && (
           <button
-            onClick={() => closeAd(ad.id)}
-            className="absolute top-2 right-2 w-6 h-6 bg-gray-800/50 text-white rounded-full flex items-center justify-center hover:bg-gray-800/70 transition-colors"
+            onClick={(e) => closeAd(ad.id, e)}
+            className="absolute top-2 right-2 z-50 w-6 h-6 bg-gray-800/70 text-white rounded-full flex items-center justify-center hover:bg-gray-800/90 transition-colors shadow-lg"
+            style={{ zIndex: 9999 }}
           >
             <X className="h-3 w-3" />
           </button>
@@ -495,10 +547,11 @@ export function AdDisplay({
           </div>
           {showCloseButton && (
             <button
-              onClick={() => closeAd(ad.id)}
-              className="absolute top-1 right-1 w-5 h-5 bg-gray-800/50 text-white rounded-full flex items-center justify-center hover:bg-gray-800/70 transition-colors"
+              onClick={(e) => closeAd(ad.id, e)}
+              className="absolute top-1 right-1 z-50 w-6 h-6 bg-gray-800/70 text-white rounded-full flex items-center justify-center hover:bg-gray-800/90 transition-colors shadow-lg"
+              style={{ zIndex: 9999 }}
             >
-              <X className="h-3 w-3" />
+              <X className="h-4 w-4" />
             </button>
           )}
           <CardContent className="p-3">

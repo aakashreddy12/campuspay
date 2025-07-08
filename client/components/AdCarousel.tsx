@@ -70,7 +70,7 @@ export function AdCarousel({
 
   return (
     <div
-      className={`relative ${className}`}
+      className={`relative group ${className}`}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
@@ -92,18 +92,18 @@ export function AdCarousel({
           <>
             <button
               onClick={goToPrevious}
-              className="absolute left-2 top-1/2 -translate-y-1/2 z-10 w-8 h-8 bg-black/50 text-white rounded-full flex items-center justify-center hover:bg-black/70 transition-colors opacity-0 group-hover:opacity-100"
+              className="absolute left-2 top-1/2 -translate-y-1/2 z-20 w-9 h-9 bg-white/90 text-gray-700 rounded-full flex items-center justify-center hover:bg-white hover:text-purple-600 transition-all shadow-lg opacity-0 group-hover:opacity-100 backdrop-blur-sm"
               aria-label="Previous ad"
             >
-              <ChevronLeft className="h-4 w-4" />
+              <ChevronLeft className="h-5 w-5" />
             </button>
 
             <button
               onClick={goToNext}
-              className="absolute right-2 top-1/2 -translate-y-1/2 z-10 w-8 h-8 bg-black/50 text-white rounded-full flex items-center justify-center hover:bg-black/70 transition-colors opacity-0 group-hover:opacity-100"
+              className="absolute right-2 top-1/2 -translate-y-1/2 z-20 w-9 h-9 bg-white/90 text-gray-700 rounded-full flex items-center justify-center hover:bg-white hover:text-purple-600 transition-all shadow-lg opacity-0 group-hover:opacity-100 backdrop-blur-sm"
               aria-label="Next ad"
             >
-              <ChevronRight className="h-4 w-4" />
+              <ChevronRight className="h-5 w-5" />
             </button>
           </>
         )}
@@ -111,15 +111,15 @@ export function AdCarousel({
 
       {/* Dots indicator */}
       {filteredAds.length > 1 && (
-        <div className="flex justify-center space-x-2 mt-3">
+        <div className="flex justify-center space-x-3 mt-4 mb-2">
           {filteredAds.map((_, index) => (
             <button
               key={index}
               onClick={() => goToSlide(index)}
-              className={`w-2 h-2 rounded-full transition-colors ${
+              className={`w-3 h-3 rounded-full transition-all duration-300 border-2 ${
                 index === currentIndex
-                  ? "bg-purple-600"
-                  : "bg-gray-300 hover:bg-gray-400"
+                  ? "bg-purple-600 border-purple-600 shadow-lg transform scale-110"
+                  : "bg-white border-gray-300 hover:border-purple-400 hover:bg-purple-50"
               }`}
               aria-label={`Go to ad ${index + 1}`}
             />
