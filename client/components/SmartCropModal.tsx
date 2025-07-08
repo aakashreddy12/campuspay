@@ -436,8 +436,8 @@ export function SmartCropModal({
                       }}
                       onMouseDown={handleCropMouseDown}
                       onMouseMove={handleCropMouseMove}
-                      onMouseUp={handleCanvasMouseUp}
-                      onMouseLeave={handleCanvasMouseUp}
+                      onMouseUp={handleCropMouseUp}
+                      onMouseLeave={handleCropMouseUp}
                     >
                       {/* Corner handles */}
                       <div className="absolute -top-1 -left-1 w-3 h-3 bg-purple-500 border border-white rounded-full"></div>
