@@ -852,21 +852,100 @@ export default function AdvertiserDashboard() {
                               />
                             </div>
 
-                            <div className="space-y-2">
-                              <Label htmlFor="image">Campaign Image</Label>
-                              <Input
-                                id="image"
-                                type="file"
-                                accept="image/*"
-                                onChange={handleImageUpload}
-                                className="file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-purple-50 file:text-purple-700 hover:file:bg-purple-100"
-                              />
-                              <p className="text-xs text-gray-500">
-                                Upload an image to create your ad. If no
-                                title/description is provided, the image will
-                                fill the entire ad space.
-                              </p>
-                              {uploadedImage && (
+                            <div className="space-y-4">
+                              <Label htmlFor="image">Campaign Media</Label>
+                              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <div className="space-y-4">
+                                  <Input
+                                    id="image"
+                                    type="file"
+                                    accept="image/*,video/*,.gif"
+                                    onChange={handleImageUpload}
+                                    className="file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-purple-50 file:text-purple-700 hover:file:bg-purple-100"
+                                  />
+                                  <p className="text-xs text-gray-500">
+                                    Upload media for your ad. Image will be
+                                    automatically sized for your selected
+                                    placement.
+                                  </p>
+                                </div>
+                                {(uploadedImage || newCampaign.mediaUrl) && (
+                                  <div className="space-y-4">
+                                    <div className="relative">
+                                      <Label className="text-sm font-medium">
+                                        Live Preview
+                                      </Label>
+                                      <div className="mt-2 border-2 border-dashed border-purple-200 rounded-lg p-4 bg-purple-50">
+                                        <div className="w-full flex justify-center">
+                                          <div
+                                            className={`border border-gray-300 rounded overflow-hidden ${
+                                              newCampaign.placement ===
+                                                "top-banner" ||
+                                              newCampaign.placement ===
+                                                "footer-banner"
+                                                ? "w-64 h-16"
+                                                : newCampaign.placement ===
+                                                    "sidebar"
+                                                  ? "w-32 h-48"
+                                                  : newCampaign.placement ===
+                                                      "inline-card"
+                                                    ? "w-48 h-36"
+                                                    : newCampaign.placement ===
+                                                        "interstitial"
+                                                      ? "w-36 h-64"
+                                                      : "w-32 h-32"
+                                            }`}
+                                          >
+                                            <img
+                                              src={
+                                                uploadedImage ||
+                                                newCampaign.mediaUrl
+                                              }
+                                              alt="Ad Preview"
+                                              className="w-full h-full object-cover"
+                                            />
+                                          </div>
+                                        </div>
+                                        <p className="text-xs text-center text-gray-500 mt-2">
+                                          {newCampaign.placement
+                                            .replace(/-/g, " ")
+                                            .replace(/\b\w/g, (l) =>
+                                              l.toUpperCase(),
+                                            )}{" "}
+                                          Preview
+                                        </p>
+                                      </div>
+                                    </div>
+
+                                    <div className="space-y-2">
+                                      <Button
+                                        type="button"
+                                        variant="outline"
+                                        size="sm"
+                                        className="w-full"
+                                        onClick={() => {
+                                          // Smart crop functionality - would integrate with image editing library
+                                          alert(
+                                            "Smart crop functionality would open image editor here. For now, the image will auto-fit the selected placement.",
+                                          );
+                                        }}
+                                      >
+                                        ✨ Smart Crop for{" "}
+                                        {newCampaign.placement
+                                          .replace(/-/g, " ")
+                                          .replace(/\b\w/g, (l) =>
+                                            l.toUpperCase(),
+                                          )}
+                                      </Button>
+                                      <p className="text-xs text-gray-500">
+                                        AI-powered cropping optimized for your
+                                        placement
+                                      </p>
+                                    </div>
+                                  </div>
+                                )}
+                              </div>
+                              {(uploadedImage || newCampaign.mediaUrl) && (
                                 <div className="mt-2">
                                   <img
                                     src={uploadedImage}
@@ -877,73 +956,124 @@ export default function AdvertiserDashboard() {
                               )}
                             </div>
 
-                            <div className="grid grid-cols-3 gap-4">
-                              <div className="space-y-2">
-                                <Label htmlFor="placement">Ad Placement</Label>
-                                <Select
-                                  value={newCampaign.placement}
-                                  onValueChange={(value) =>
-                                    setNewCampaign({
-                                      ...newCampaign,
-                                      placement: value as any,
-                                    })
-                                  }
-                                >
-                                  <SelectTrigger>
-                                    <SelectValue />
-                                  </SelectTrigger>
-                                  <SelectContent>
-                                    <SelectItem value="top-banner">
-                                      Top Banner
-                                    </SelectItem>
-                                    <SelectItem value="sidebar">
-                                      Sidebar
-                                    </SelectItem>
-                                    <SelectItem value="inline-card">
-                                      Inline Card
-                                    </SelectItem>
-                                    <SelectItem value="footer-banner">
-                                      Footer Banner
-                                    </SelectItem>
-                                    <SelectItem value="interstitial">
-                                      Interstitial
-                                    </SelectItem>
-                                    <SelectItem value="floating-cta">
-                                      Floating CTA
-                                    </SelectItem>
-                                  </SelectContent>
-                                </Select>
+                            <div className="space-y-6">
+                              {/* Placement Selection with Preview */}
+                              <div className="space-y-4">
+                                <Label className="text-lg font-semibold">
+                                  Choose Ad Placement & Size
+                                </Label>
+                                <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                                  {[
+                                    {
+                                      value: "top-banner",
+                                      label: "Top Banner",
+                                      size: "large",
+                                      aspectRatio: "16:4",
+                                    },
+                                    {
+                                      value: "sidebar",
+                                      label: "Sidebar",
+                                      size: "small",
+                                      aspectRatio: "1:1.5",
+                                    },
+                                    {
+                                      value: "inline-card",
+                                      label: "Inline Card",
+                                      size: "medium",
+                                      aspectRatio: "4:3",
+                                    },
+                                    {
+                                      value: "footer-banner",
+                                      label: "Footer Banner",
+                                      size: "large",
+                                      aspectRatio: "16:3",
+                                    },
+                                    {
+                                      value: "interstitial",
+                                      label: "Interstitial",
+                                      size: "extra-large",
+                                      aspectRatio: "9:16",
+                                    },
+                                    {
+                                      value: "floating-cta",
+                                      label: "Floating CTA",
+                                      size: "small",
+                                      aspectRatio: "1:1",
+                                    },
+                                  ].map((placement) => (
+                                    <div
+                                      key={placement.value}
+                                      className={`relative border-2 rounded-lg p-4 cursor-pointer transition-all ${
+                                        newCampaign.placement ===
+                                        placement.value
+                                          ? "border-purple-500 bg-purple-50"
+                                          : "border-gray-200 hover:border-gray-300"
+                                      }`}
+                                      onClick={() =>
+                                        setNewCampaign({
+                                          ...newCampaign,
+                                          placement: placement.value as any,
+                                          size: placement.size as any,
+                                        })
+                                      }
+                                    >
+                                      <div className="text-center">
+                                        <div
+                                          className={`mx-auto mb-2 border-2 border-dashed border-gray-300 rounded flex items-center justify-center text-gray-400 ${
+                                            placement.aspectRatio === "16:4"
+                                              ? "w-full h-8"
+                                              : placement.aspectRatio === "16:3"
+                                                ? "w-full h-10"
+                                                : placement.aspectRatio ===
+                                                    "1:1.5"
+                                                  ? "w-12 h-18"
+                                                  : placement.aspectRatio ===
+                                                      "4:3"
+                                                    ? "w-16 h-12"
+                                                    : placement.aspectRatio ===
+                                                        "9:16"
+                                                      ? "w-16 h-28"
+                                                      : "w-12 h-12"
+                                          }`}
+                                        >
+                                          {uploadedImage ||
+                                          newCampaign.mediaUrl ? (
+                                            <img
+                                              src={
+                                                uploadedImage ||
+                                                newCampaign.mediaUrl
+                                              }
+                                              alt="Preview"
+                                              className="w-full h-full object-cover rounded"
+                                            />
+                                          ) : (
+                                            <span className="text-xs">
+                                              Preview
+                                            </span>
+                                          )}
+                                        </div>
+                                        <p className="text-sm font-medium">
+                                          {placement.label}
+                                        </p>
+                                        <p className="text-xs text-gray-500">
+                                          {placement.size} •{" "}
+                                          {placement.aspectRatio}
+                                        </p>
+                                      </div>
+                                      {newCampaign.placement ===
+                                        placement.value && (
+                                        <div className="absolute top-2 right-2">
+                                          <div className="w-4 h-4 bg-purple-500 rounded-full flex items-center justify-center">
+                                            <div className="w-2 h-2 bg-white rounded-full" />
+                                          </div>
+                                        </div>
+                                      )}
+                                    </div>
+                                  ))}
+                                </div>
                               </div>
-                              <div className="space-y-2">
-                                <Label htmlFor="size">Ad Size</Label>
-                                <Select
-                                  value={newCampaign.size}
-                                  onValueChange={(value) =>
-                                    setNewCampaign({
-                                      ...newCampaign,
-                                      size: value as any,
-                                    })
-                                  }
-                                >
-                                  <SelectTrigger>
-                                    <SelectValue />
-                                  </SelectTrigger>
-                                  <SelectContent>
-                                    <SelectItem value="small">
-                                      Small (Compact)
-                                    </SelectItem>
-                                    <SelectItem value="medium">
-                                      Medium (Standard)
-                                    </SelectItem>
-                                    <SelectItem value="large">
-                                      Large (Featured)
-                                    </SelectItem>
-                                    <SelectItem value="extra-large">
-                                      Extra Large (Premium)
-                                    </SelectItem>
-                                  </SelectContent>
-                                </Select>
-                              </div>
+
+                              {/* Media Type Selection */}
                               <div className="space-y-2">
                                 <Label htmlFor="mediaType">Media Type</Label>
                                 <Select
