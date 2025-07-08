@@ -585,16 +585,18 @@ export function SmartCropModal({
                     }`}
                   >
                     {imageLoaded && imageRef.current ? (
-                      <div
-                        className="w-full h-full bg-gray-100"
-                        style={{
-                          backgroundImage: `url(${imageUrl})`,
-                          backgroundPosition: `${-cropArea.x * (240 / imageRef.current.width)}px ${-cropArea.y * (240 / imageRef.current.height)}px`,
-                          backgroundSize: `${240 * scale}px ${((240 * imageRef.current.height) / imageRef.current.width) * scale}px`,
-                          backgroundRepeat: "no-repeat",
-                          transform: `rotate(${rotation}deg)`,
-                        }}
-                      />
+                      <div className="w-full h-full bg-gray-100 relative overflow-hidden">
+                        <div
+                          className="absolute inset-0"
+                          style={{
+                            backgroundImage: `url(${imageUrl})`,
+                            backgroundPosition: `${-(cropArea.x / cropArea.width) * 100}% ${-(cropArea.y / cropArea.height) * 100}%`,
+                            backgroundSize: `${(imageRef.current.width / cropArea.width) * 100}% ${(imageRef.current.height / cropArea.height) * 100}%`,
+                            backgroundRepeat: "no-repeat",
+                            transform: `rotate(${rotation}deg) scale(${scale})`,
+                          }}
+                        />
+                      </div>
                     ) : (
                       <div className="w-full h-full bg-gray-100 flex items-center justify-center text-gray-400 text-xs">
                         Live Preview
