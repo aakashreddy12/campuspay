@@ -1057,13 +1057,16 @@ export default function AdvertiserDashboard() {
                                         >
                                           {uploadedImage ||
                                           newCampaign.mediaUrl ? (
+                                            newCampaign.mediaType === "video" ||
                                             (
                                               uploadedImage ||
                                               newCampaign.mediaUrl
-                                            )?.startsWith("data:video/") ||
-                                            newCampaign.mediaType ===
-                                              "video" ? (
+                                            )?.includes("video") ? (
                                               <video
+                                                key={
+                                                  uploadedImage ||
+                                                  newCampaign.mediaUrl
+                                                }
                                                 src={
                                                   uploadedImage ||
                                                   newCampaign.mediaUrl
@@ -1076,12 +1079,28 @@ export default function AdvertiserDashboard() {
                                               />
                                             ) : (
                                               <img
+                                                key={
+                                                  uploadedImage ||
+                                                  newCampaign.mediaUrl
+                                                }
                                                 src={
                                                   uploadedImage ||
                                                   newCampaign.mediaUrl
                                                 }
                                                 alt="Preview"
                                                 className="w-full h-full object-cover rounded"
+                                                onLoad={(e) =>
+                                                  console.log(
+                                                    "Placement preview loaded:",
+                                                    e.target.src,
+                                                  )
+                                                }
+                                                onError={(e) =>
+                                                  console.log(
+                                                    "Placement preview error:",
+                                                    e,
+                                                  )
+                                                }
                                               />
                                             )
                                           ) : (
