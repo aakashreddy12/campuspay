@@ -179,7 +179,12 @@ export function AdDisplay({
       e.preventDefault();
       e.stopPropagation();
     }
-    setClosedAds((prev) => [...prev, adId]);
+    console.log("Closing ad:", adId);
+    setClosedAds((prev) => {
+      const newClosed = [...prev, adId];
+      console.log("New closed ads:", newClosed);
+      return newClosed;
+    });
     onAdClosed?.(adId);
   };
 
