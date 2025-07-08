@@ -23,6 +23,8 @@ function MediaRenderer({
 }: MediaRendererProps) {
   const [error, setError] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [videoMuted, setVideoMuted] = useState(true);
+  const videoRef = useRef<HTMLVideoElement>(null);
 
   const handleError = () => {
     console.error(`Media failed to load: ${mediaUrl}, type: ${mediaType}`);
@@ -34,6 +36,25 @@ function MediaRenderer({
     console.log(`Media loaded successfully: ${mediaUrl}, type: ${mediaType}`);
     setLoading(false);
   };
+
+  const enableSound = () => {
+    if (videoRef.current) {
+      videoRef.current.muted = false;
+      setVideoMuted(false);
+      videoRef.current.play().catch(console.error);
+    }
+  };
+
+  useEffect(() => {
+    // Try to enable sound after a short delay for video ads
+    if (mediaType === "video" && videoRef.current) {
+      const timer = setTimeout(() => {
+        videoRef.current!.muted = false;
+        setVideoMuted(false);
+      }, 500);
+      return () => clearTimeout(timer);
+    }
+  }, [mediaType]);
 
   if (error) {
     return (
@@ -50,16 +71,33 @@ function MediaRenderer({
   switch (mediaType) {
     case "video":
       return (
-        <video
-          src={mediaUrl}
-          className={className}
-          autoPlay
-          loop
-          playsInline
-          style={{ objectFit: "cover" }}
-          onError={handleError}
-          onLoadedData={handleLoad}
-        />
+        <div className="relative" style={{ position: "relative" }}>
+          <video
+            ref={videoRef}
+            src={mediaUrl}
+            className={className}
+            autoPlay
+            muted={videoMuted}
+            loop
+            playsInline
+            style={{ objectFit: "cover" }}
+            onError={handleError}
+            onLoadedData={handleLoad}
+            onClick={enableSound}
+          />
+          {videoMuted && (
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                enableSound();
+              }}
+              className="absolute bottom-2 right-2 bg-black/50 text-white rounded-full p-2 hover:bg-black/70 transition-colors"
+              style={{ fontSize: "12px" }}
+            >
+              🔊
+            </button>
+          )}
+        </div>
       );
 
     case "gif":
