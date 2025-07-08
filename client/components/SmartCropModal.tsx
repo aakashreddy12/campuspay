@@ -12,6 +12,81 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { X, RotateCw, Crop, Sparkles } from "lucide-react";
 
+// Component to show accurate crop preview
+function CropPreview({
+  imageRef,
+  imageUrl,
+  cropArea,
+  rotation,
+  scale,
+}: {
+  imageRef: React.RefObject<HTMLImageElement>;
+  imageUrl: string;
+  cropArea: { x: number; y: number; width: number; height: number };
+  rotation: number;
+  scale: number;
+}) {
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+
+  useEffect(() => {
+    if (!canvasRef.current || !imageRef.current) return;
+
+    const canvas = canvasRef.current;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
+
+    // Set canvas size to match container
+    const container = canvas.parentElement;
+    if (!container) return;
+
+    canvas.width = container.clientWidth;
+    canvas.height = container.clientHeight;
+
+    // Clear canvas
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    // Calculate scaling to fit the crop area in the preview canvas
+    const scaleX = canvas.width / cropArea.width;
+    const scaleY = canvas.height / cropArea.height;
+    const previewScale = Math.min(scaleX, scaleY);
+
+    // Center the preview
+    const offsetX = (canvas.width - cropArea.width * previewScale) / 2;
+    const offsetY = (canvas.height - cropArea.height * previewScale) / 2;
+
+    ctx.save();
+    ctx.translate(
+      offsetX + (cropArea.width * previewScale) / 2,
+      offsetY + (cropArea.height * previewScale) / 2,
+    );
+    ctx.rotate((rotation * Math.PI) / 180);
+    ctx.scale(scale, scale);
+
+    // Draw the cropped portion
+    ctx.drawImage(
+      imageRef.current,
+      cropArea.x,
+      cropArea.y,
+      cropArea.width,
+      cropArea.height,
+      -(cropArea.width * previewScale) / 2,
+      -(cropArea.height * previewScale) / 2,
+      cropArea.width * previewScale,
+      cropArea.height * previewScale,
+    );
+
+    ctx.restore();
+  }, [imageRef, cropArea, rotation, scale]);
+
+  return (
+    <canvas
+      ref={canvasRef}
+      className="w-full h-full object-contain"
+      style={{ backgroundColor: "#f3f4f6" }}
+    />
+  );
+}
+
 interface SmartCropModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -585,18 +660,13 @@ export function SmartCropModal({
                     }`}
                   >
                     {imageLoaded && imageRef.current ? (
-                      <div className="w-full h-full bg-gray-100 relative overflow-hidden">
-                        <div
-                          className="absolute inset-0"
-                          style={{
-                            backgroundImage: `url(${imageUrl})`,
-                            backgroundPosition: `${-(cropArea.x / cropArea.width) * 100}% ${-(cropArea.y / cropArea.height) * 100}%`,
-                            backgroundSize: `${(imageRef.current.width / cropArea.width) * 100}% ${(imageRef.current.height / cropArea.height) * 100}%`,
-                            backgroundRepeat: "no-repeat",
-                            transform: `rotate(${rotation}deg) scale(${scale})`,
-                          }}
-                        />
-                      </div>
+                      <CropPreview
+                        imageRef={imageRef}
+                        imageUrl={imageUrl}
+                        cropArea={cropArea}
+                        rotation={rotation}
+                        scale={scale}
+                      />
                     ) : (
                       <div className="w-full h-full bg-gray-100 flex items-center justify-center text-gray-400 text-xs">
                         Live Preview
