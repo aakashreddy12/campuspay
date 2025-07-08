@@ -834,7 +834,11 @@ export default function StudentCoupons() {
                     Sponsored
                   </Badge>
                   <button
-                    onClick={() => handleAdClick(ad)}
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      setClosedAds((prev) => [...prev, ad.id]);
+                    }}
                     className="absolute top-2 right-2 text-gray-400 hover:text-gray-600"
                   >
                     <X className="h-4 w-4" />
@@ -869,7 +873,11 @@ export default function StudentCoupons() {
             <div key={ad.id} className="fixed bottom-4 right-4 z-50 max-w-sm">
               <div className="bg-white rounded-lg shadow-lg border-2 border-orange-200 p-4 relative">
                 <button
-                  onClick={() => handleAdClick(ad)}
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    setClosedAds((prev) => [...prev, ad.id]);
+                  }}
                   className="absolute top-2 right-2 text-gray-400 hover:text-gray-600"
                 >
                   <X className="h-4 w-4" />
