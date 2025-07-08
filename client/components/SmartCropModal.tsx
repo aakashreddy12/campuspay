@@ -34,7 +34,6 @@ export function SmartCropModal({
   placement,
   onCropComplete,
 }: SmartCropModalProps) {
-  const canvasRef = useRef<HTMLCanvasElement>(null);
   const imageRef = useRef<HTMLImageElement>(null);
   const [cropArea, setCropArea] = useState<CropArea>({
     x: 0,
