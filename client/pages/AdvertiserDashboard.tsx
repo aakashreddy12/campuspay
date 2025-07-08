@@ -1787,6 +1787,18 @@ export default function AdvertiserDashboard() {
           )}
         </div>
       </div>
+
+      {/* Smart Crop Modal */}
+      <SmartCropModal
+        isOpen={showCropModal}
+        onClose={() => setShowCropModal(false)}
+        imageUrl={originalImage}
+        placement={newCampaign.placement}
+        onCropComplete={(croppedImageUrl) => {
+          setUploadedImage(croppedImageUrl);
+          setNewCampaign({ ...newCampaign, mediaUrl: croppedImageUrl });
+        }}
+      />
     </div>
   );
 }
