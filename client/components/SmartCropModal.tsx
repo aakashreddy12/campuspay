@@ -96,31 +96,124 @@ export function SmartCropModal({
     }
   }, [imageLoaded, placement]);
 
-  // Smart crop using simple center crop logic
-  const performSmartCrop = () => {
+  // Smart crop using AI-powered analysis
+  const performSmartCrop = async () => {
     if (!imageRef.current) return;
 
     const img = imageRef.current;
     const aspectRatio = getAspectRatio();
 
-    // AI-powered smart crop simulation
-    let width, height, x, y;
+    // Create a canvas to analyze the image
+    const analysisCanvas = document.createElement("canvas");
+    const ctx = analysisCanvas.getContext("2d");
+    if (!ctx) return;
 
-    if (img.width / img.height > aspectRatio) {
-      // Image is wider - focus on center
-      height = img.height;
-      width = height * aspectRatio;
-      x = (img.width - width) / 2;
-      y = 0;
-    } else {
-      // Image is taller - focus on upper third (better for faces/subjects)
-      width = img.width;
-      height = width / aspectRatio;
-      x = 0;
-      y = img.height * 0.2; // Focus on upper 20% for better composition
+    analysisCanvas.width = img.width;
+    analysisCanvas.height = img.height;
+    ctx.drawImage(img, 0, 0);
+
+    // Get image data for analysis
+    const imageData = ctx.getImageData(0, 0, img.width, img.height);
+    const data = imageData.data;
+
+    // Simple edge detection and interest point analysis
+    const interestMap = new Array(img.height)
+      .fill(0)
+      .map(() => new Array(img.width).fill(0));
+
+    // Calculate interest score for each pixel based on color variance
+    for (let y = 1; y < img.height - 1; y++) {
+      for (let x = 1; x < img.width - 1; x++) {
+        const idx = (y * img.width + x) * 4;
+        const neighbors = [
+          data[((y - 1) * img.width + x) * 4], // top
+          data[((y + 1) * img.width + x) * 4], // bottom
+          data[(y * img.width + x - 1) * 4], // left
+          data[(y * img.width + x + 1) * 4], // right
+        ];
+
+        const current = data[idx];
+        const variance = neighbors.reduce(
+          (sum, neighbor) => sum + Math.abs(current - neighbor),
+          0,
+        );
+        interestMap[y][x] = variance;
+      }
     }
 
-    setCropArea({ x, y, width, height });
+    // Find the region with highest interest for the target aspect ratio
+    let bestScore = 0;
+    let bestCrop = { x: 0, y: 0, width: img.width, height: img.height };
+
+    const targetWidth =
+      aspectRatio >= 1
+        ? Math.min(img.width, img.height * aspectRatio)
+        : img.width;
+    const targetHeight =
+      aspectRatio >= 1
+        ? targetWidth / aspectRatio
+        : Math.min(img.height, img.width / aspectRatio);
+
+    // Sample different crop positions
+    const stepSize = Math.max(
+      1,
+      Math.floor(Math.min(img.width, img.height) / 20),
+    );
+
+    for (let y = 0; y <= img.height - targetHeight; y += stepSize) {
+      for (let x = 0; x <= img.width - targetWidth; x += stepSize) {
+        let score = 0;
+        let sampleCount = 0;
+
+        // Sample interest points in this crop area
+        for (
+          let sy = y;
+          sy < y + targetHeight;
+          sy += Math.max(1, Math.floor(targetHeight / 10))
+        ) {
+          for (
+            let sx = x;
+            sx < x + targetWidth;
+            sx += Math.max(1, Math.floor(targetWidth / 10))
+          ) {
+            if (sy < img.height && sx < img.width) {
+              score += interestMap[sy][sx];
+              sampleCount++;
+            }
+          }
+        }
+
+        // Add bias towards center and rule of thirds
+        const centerX = img.width / 2;
+        const centerY = img.height / 2;
+        const cropCenterX = x + targetWidth / 2;
+        const cropCenterY = y + targetHeight / 2;
+
+        const centerBias =
+          1 -
+          (Math.abs(cropCenterX - centerX) / centerX +
+            Math.abs(cropCenterY - centerY) / centerY) /
+            2;
+
+        // Rule of thirds bias (prefer crops that align with thirds)
+        const thirdX = img.width / 3;
+        const thirdY = img.height / 3;
+        const thirdsBias = Math.min(
+          1 - Math.abs((cropCenterX % thirdX) - thirdX / 2) / (thirdX / 2),
+          1 - Math.abs((cropCenterY % thirdY) - thirdY / 2) / (thirdY / 2),
+        );
+
+        const avgScore = sampleCount > 0 ? score / sampleCount : 0;
+        const finalScore = avgScore * (1 + centerBias * 0.3 + thirdsBias * 0.2);
+
+        if (finalScore > bestScore) {
+          bestScore = finalScore;
+          bestCrop = { x, y, width: targetWidth, height: targetHeight };
+        }
+      }
+    }
+
+    setCropArea(bestCrop);
     setSmartCropMode("smart");
   };
 
@@ -352,17 +445,21 @@ export function SmartCropModal({
                               : "w-24 h-24"
                     }`}
                   >
-                    {imageLoaded && (
+                    {imageLoaded && imageRef.current ? (
                       <div
                         className="w-full h-full bg-gray-100"
                         style={{
                           backgroundImage: `url(${imageUrl})`,
-                          backgroundPosition: `${-cropArea.x}px ${-cropArea.y}px`,
-                          backgroundSize: `${imageRef.current?.width || 0}px ${imageRef.current?.height || 0}px`,
+                          backgroundPosition: `${-cropArea.x * (240 / imageRef.current.width)}px ${-cropArea.y * (240 / imageRef.current.height)}px`,
+                          backgroundSize: `${240 * scale}px ${((240 * imageRef.current.height) / imageRef.current.width) * scale}px`,
                           backgroundRepeat: "no-repeat",
-                          transform: `rotate(${rotation}deg) scale(${scale})`,
+                          transform: `rotate(${rotation}deg)`,
                         }}
                       />
+                    ) : (
+                      <div className="w-full h-full bg-gray-100 flex items-center justify-center text-gray-400 text-xs">
+                        Live Preview
+                      </div>
                     )}
                   </div>
                 </div>
