@@ -217,11 +217,13 @@ export function SmartCropModal({
     setSmartCropMode("smart");
   };
 
-  const handleCanvasMouseDown = (e: React.MouseEvent) => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
+  const handleCropMouseDown = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
 
-    const rect = canvas.getBoundingClientRect();
+    if (!imageRef.current) return;
+
+    const rect = e.currentTarget.getBoundingClientRect();
     const x = e.clientX - rect.left;
     const y = e.clientY - rect.top;
 
@@ -229,16 +231,22 @@ export function SmartCropModal({
     setDragStart({ x, y });
   };
 
-  const handleCanvasMouseMove = (e: React.MouseEvent) => {
-    if (!isDragging || !canvasRef.current || !imageRef.current) return;
+  const handleCropMouseMove = (e: React.MouseEvent) => {
+    if (!isDragging || !imageRef.current) return;
 
-    const canvas = canvasRef.current;
-    const rect = canvas.getBoundingClientRect();
-    const x = e.clientX - rect.left;
-    const y = e.clientY - rect.top;
+    e.preventDefault();
 
-    const deltaX = x - dragStart.x;
-    const deltaY = y - dragStart.y;
+    const containerRect =
+      e.currentTarget.parentElement?.getBoundingClientRect();
+    if (!containerRect) return;
+
+    const x = e.clientX - containerRect.left;
+    const y = e.clientY - containerRect.top;
+
+    const deltaX =
+      (x - dragStart.x) * (imageRef.current.width / containerRect.width);
+    const deltaY =
+      (y - dragStart.y) * (imageRef.current.height / containerRect.height);
 
     setCropArea((prev) => ({
       ...prev,
@@ -255,14 +263,63 @@ export function SmartCropModal({
     setDragStart({ x, y });
   };
 
-  const handleCanvasMouseUp = () => {
+  const handleCropMouseUp = () => {
     setIsDragging(false);
   };
 
-  const applyCrop = async () => {
-    if (!imageRef.current || !canvasRef.current) return;
+  // Add global mouse move and up handlers
+  useEffect(() => {
+    if (!isDragging) return;
 
-    const canvas = canvasRef.current;
+    const handleGlobalMouseMove = (e: MouseEvent) => {
+      if (!imageRef.current) return;
+
+      const containerRect = document
+        .querySelector(".crop-container")
+        ?.getBoundingClientRect();
+      if (!containerRect) return;
+
+      const x = e.clientX - containerRect.left;
+      const y = e.clientY - containerRect.top;
+
+      const deltaX =
+        (x - dragStart.x) * (imageRef.current.width / containerRect.width);
+      const deltaY =
+        (y - dragStart.y) * (imageRef.current.height / containerRect.height);
+
+      setCropArea((prev) => ({
+        ...prev,
+        x: Math.max(
+          0,
+          Math.min(imageRef.current!.width - prev.width, prev.x + deltaX),
+        ),
+        y: Math.max(
+          0,
+          Math.min(imageRef.current!.height - prev.height, prev.y + deltaY),
+        ),
+      }));
+
+      setDragStart({ x, y });
+    };
+
+    const handleGlobalMouseUp = () => {
+      setIsDragging(false);
+    };
+
+    document.addEventListener("mousemove", handleGlobalMouseMove);
+    document.addEventListener("mouseup", handleGlobalMouseUp);
+
+    return () => {
+      document.removeEventListener("mousemove", handleGlobalMouseMove);
+      document.removeEventListener("mouseup", handleGlobalMouseUp);
+    };
+  }, [isDragging, dragStart]);
+
+  const applyCrop = async () => {
+    if (!imageRef.current) return;
+
+    // Create a new canvas for cropping
+    const canvas = document.createElement("canvas");
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
 
@@ -270,34 +327,41 @@ export function SmartCropModal({
     canvas.width = cropArea.width;
     canvas.height = cropArea.height;
 
-    // Apply rotation and scale
+    // Clear canvas
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    // Apply transformations
     ctx.save();
     ctx.translate(canvas.width / 2, canvas.height / 2);
     ctx.rotate((rotation * Math.PI) / 180);
     ctx.scale(scale, scale);
 
-    // Draw cropped image
+    // Draw the cropped portion of the image
     ctx.drawImage(
       imageRef.current,
       cropArea.x,
       cropArea.y,
       cropArea.width,
       cropArea.height,
-      -canvas.width / 2,
-      -canvas.height / 2,
-      canvas.width,
-      canvas.height,
+      -cropArea.width / 2,
+      -cropArea.height / 2,
+      cropArea.width,
+      cropArea.height,
     );
 
     ctx.restore();
 
-    // Convert to blob
+    // Convert to blob and create URL
     canvas.toBlob(
       (blob) => {
         if (blob) {
-          const croppedUrl = URL.createObjectURL(blob);
-          onCropComplete(croppedUrl);
-          onClose();
+          const reader = new FileReader();
+          reader.onload = (e) => {
+            const croppedUrl = e.target?.result as string;
+            onCropComplete(croppedUrl);
+            onClose();
+          };
+          reader.readAsDataURL(blob);
         }
       },
       "image/jpeg",
@@ -398,7 +462,43 @@ export function SmartCropModal({
               </div>
 
               {/* Controls */}
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                <div className="space-y-2">
+                  <Label>Width: {Math.round(cropArea.width)}px</Label>
+                  <Slider
+                    value={[cropArea.width]}
+                    onValueChange={([value]) =>
+                      setCropArea((prev) => ({
+                        ...prev,
+                        width: Math.min(
+                          value,
+                          (imageRef.current?.width || 0) - prev.x,
+                        ),
+                      }))
+                    }
+                    min={50}
+                    max={imageRef.current?.width || 400}
+                    step={1}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label>Height: {Math.round(cropArea.height)}px</Label>
+                  <Slider
+                    value={[cropArea.height]}
+                    onValueChange={([value]) =>
+                      setCropArea((prev) => ({
+                        ...prev,
+                        height: Math.min(
+                          value,
+                          (imageRef.current?.height || 0) - prev.y,
+                        ),
+                      }))
+                    }
+                    min={50}
+                    max={imageRef.current?.height || 400}
+                    step={1}
+                  />
+                </div>
                 <div className="space-y-2">
                   <Label>Rotation: {rotation}°</Label>
                   <Slider
@@ -419,20 +519,42 @@ export function SmartCropModal({
                     step={0.1}
                   />
                 </div>
-                <div className="flex items-end">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => {
-                      setRotation(0);
-                      setScale(1);
-                    }}
-                    className="w-full"
-                  >
-                    <RotateCw className="h-4 w-4 mr-1" />
-                    Reset
-                  </Button>
-                </div>
+              </div>
+
+              <div className="flex justify-center">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => {
+                    setRotation(0);
+                    setScale(1);
+                    // Reset to center crop
+                    if (imageRef.current) {
+                      const aspectRatio = getAspectRatio();
+                      let width, height;
+                      if (
+                        imageRef.current.width / imageRef.current.height >
+                        aspectRatio
+                      ) {
+                        height = imageRef.current.height * 0.8;
+                        width = height * aspectRatio;
+                      } else {
+                        width = imageRef.current.width * 0.8;
+                        height = width / aspectRatio;
+                      }
+                      setCropArea({
+                        x: (imageRef.current.width - width) / 2,
+                        y: (imageRef.current.height - height) / 2,
+                        width,
+                        height,
+                      });
+                    }
+                  }}
+                  className="w-auto"
+                >
+                  <RotateCw className="h-4 w-4 mr-1" />
+                  Reset All
+                </Button>
               </div>
             </div>
 
