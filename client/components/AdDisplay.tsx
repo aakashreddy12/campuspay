@@ -233,7 +233,8 @@ export function AdDisplay({
         {showCloseButton && (
           <button
             onClick={(e) => closeAd(ad.id, e)}
-            className="absolute top-2 right-2 z-10 w-6 h-6 bg-gray-800/50 text-white rounded-full flex items-center justify-center hover:bg-gray-800/70 transition-colors"
+            className="absolute top-2 right-2 z-50 w-6 h-6 bg-gray-800/70 text-white rounded-full flex items-center justify-center hover:bg-gray-800/90 transition-colors shadow-lg"
+            style={{ zIndex: 9999 }}
           >
             <X className="h-3 w-3" />
           </button>
@@ -366,7 +367,8 @@ export function AdDisplay({
         {showCloseButton && (
           <button
             onClick={(e) => closeAd(ad.id, e)}
-            className="absolute top-2 right-2 w-6 h-6 bg-gray-800/50 text-white rounded-full flex items-center justify-center hover:bg-gray-800/70 transition-colors"
+            className="absolute top-2 right-2 z-50 w-6 h-6 bg-gray-800/70 text-white rounded-full flex items-center justify-center hover:bg-gray-800/90 transition-colors shadow-lg"
+            style={{ zIndex: 9999 }}
           >
             <X className="h-3 w-3" />
           </button>
@@ -520,9 +522,10 @@ export function AdDisplay({
           {showCloseButton && (
             <button
               onClick={(e) => closeAd(ad.id, e)}
-              className="absolute top-1 right-1 w-5 h-5 bg-gray-800/50 text-white rounded-full flex items-center justify-center hover:bg-gray-800/70 transition-colors"
+              className="absolute top-1 right-1 z-50 w-6 h-6 bg-gray-800/70 text-white rounded-full flex items-center justify-center hover:bg-gray-800/90 transition-colors shadow-lg"
+              style={{ zIndex: 9999 }}
             >
-              <X className="h-3 w-3" />
+              <X className="h-4 w-4" />
             </button>
           )}
           <CardContent className="p-3">
