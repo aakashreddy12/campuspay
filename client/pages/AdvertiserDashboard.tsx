@@ -438,6 +438,7 @@ export default function AdvertiserDashboard() {
           "Image loaded as data URL:",
           imageUrl.substring(0, 100) + "...",
         );
+        setOriginalImage(imageUrl);
         setUploadedImage(imageUrl);
         setNewCampaign({ ...newCampaign, mediaUrl: imageUrl });
       };
@@ -941,13 +942,9 @@ export default function AdvertiserDashboard() {
                                         type="button"
                                         variant="outline"
                                         size="sm"
-                                        className="w-full"
-                                        onClick={() => {
-                                          // Smart crop functionality - would integrate with image editing library
-                                          alert(
-                                            "Smart crop functionality would open image editor here. For now, the image will auto-fit the selected placement.",
-                                          );
-                                        }}
+                                        className="w-full bg-purple-50 hover:bg-purple-100 border-purple-200"
+                                        onClick={() => setShowCropModal(true)}
+                                        disabled={!originalImage}
                                       >
                                         ✨ Smart Crop for{" "}
                                         {newCampaign.placement
