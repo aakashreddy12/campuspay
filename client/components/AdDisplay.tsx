@@ -72,7 +72,28 @@ function MediaRenderer({
             controls={false}
             style={{ objectFit: "cover" }}
             onError={handleError}
-            onLoadedData={handleLoad}
+            onLoadedData={(e) => {
+              handleLoad();
+              // Ensure video plays after loading
+              const video = e.target as HTMLVideoElement;
+              video.play().catch(() => {
+                // If autoplay fails, try muted autoplay
+                video.muted = true;
+                setIsMuted(true);
+                video.play().catch(console.error);
+              });
+            }}
+            onCanPlay={(e) => {
+              // Ensure video plays when ready
+              const video = e.target as HTMLVideoElement;
+              if (video.paused) {
+                video.play().catch(() => {
+                  video.muted = true;
+                  setIsMuted(true);
+                  video.play().catch(console.error);
+                });
+              }
+            }}
           />
           <button
             onClick={toggleMute}
