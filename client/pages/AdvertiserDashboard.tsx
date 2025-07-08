@@ -84,6 +84,8 @@ export default function AdvertiserDashboard() {
     },
   });
   const [uploadedImage, setUploadedImage] = useState<string | null>(null);
+  const [showCropModal, setShowCropModal] = useState(false);
+  const [originalImage, setOriginalImage] = useState<string>("");
 
   useEffect(() => {
     if (user) {
