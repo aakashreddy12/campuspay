@@ -46,13 +46,28 @@ function MediaRenderer({
   };
 
   useEffect(() => {
-    // Try to enable sound after a short delay for video ads
+    // Try to enable sound for video ads
     if (mediaType === "video" && videoRef.current) {
-      const timer = setTimeout(() => {
-        videoRef.current!.muted = false;
+      const video = videoRef.current;
+
+      // Try to unmute immediately
+      const tryUnmute = () => {
+        video.muted = false;
         setVideoMuted(false);
-      }, 500);
-      return () => clearTimeout(timer);
+        video.play().catch(() => {
+          // If autoplay with sound fails, keep it muted until user interaction
+          video.muted = true;
+          setVideoMuted(true);
+        });
+      };
+
+      // Try unmuting after video loads
+      if (video.readyState >= 2) {
+        tryUnmute();
+      } else {
+        video.addEventListener("loadeddata", tryUnmute);
+        return () => video.removeEventListener("loadeddata", tryUnmute);
+      }
     }
   }, [mediaType]);
 
