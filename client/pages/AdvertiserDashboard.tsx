@@ -900,13 +900,17 @@ export default function AdvertiserDashboard() {
                                                       : "w-32 h-32"
                                             }`}
                                           >
-                                            {(
+                                            {newCampaign.mediaType ===
+                                              "video" ||
+                                            (
                                               uploadedImage ||
                                               newCampaign.mediaUrl
-                                            )?.startsWith("data:video/") ||
-                                            newCampaign.mediaType ===
-                                              "video" ? (
+                                            )?.includes("video") ? (
                                               <video
+                                                key={
+                                                  uploadedImage ||
+                                                  newCampaign.mediaUrl
+                                                }
                                                 src={
                                                   uploadedImage ||
                                                   newCampaign.mediaUrl
@@ -916,15 +920,42 @@ export default function AdvertiserDashboard() {
                                                 muted
                                                 loop
                                                 playsInline
+                                                onLoad={(e) =>
+                                                  console.log(
+                                                    "Live preview video loaded",
+                                                  )
+                                                }
+                                                onError={(e) =>
+                                                  console.log(
+                                                    "Live preview video error:",
+                                                    e,
+                                                  )
+                                                }
                                               />
                                             ) : (
                                               <img
+                                                key={
+                                                  uploadedImage ||
+                                                  newCampaign.mediaUrl
+                                                }
                                                 src={
                                                   uploadedImage ||
                                                   newCampaign.mediaUrl
                                                 }
                                                 alt="Ad Preview"
                                                 className="w-full h-full object-cover"
+                                                onLoad={(e) =>
+                                                  console.log(
+                                                    "Live preview image loaded:",
+                                                    e.target.src,
+                                                  )
+                                                }
+                                                onError={(e) =>
+                                                  console.log(
+                                                    "Live preview image error:",
+                                                    e,
+                                                  )
+                                                }
                                               />
                                             )}
                                           </div>
