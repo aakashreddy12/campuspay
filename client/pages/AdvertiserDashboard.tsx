@@ -1017,37 +1017,31 @@ export default function AdvertiserDashboard() {
                                     {
                                       value: "top-banner",
                                       label: "Top Banner",
-                                      size: "large",
                                       aspectRatio: "16:4",
                                     },
                                     {
                                       value: "sidebar",
                                       label: "Sidebar",
-                                      size: "small",
                                       aspectRatio: "1:1.5",
                                     },
                                     {
                                       value: "inline-card",
                                       label: "Inline Card",
-                                      size: "medium",
                                       aspectRatio: "4:3",
                                     },
                                     {
                                       value: "footer-banner",
                                       label: "Footer Banner",
-                                      size: "large",
                                       aspectRatio: "16:3",
                                     },
                                     {
                                       value: "interstitial",
                                       label: "Interstitial",
-                                      size: "extra-large",
                                       aspectRatio: "9:16",
                                     },
                                     {
                                       value: "floating-cta",
                                       label: "Floating CTA",
-                                      size: "small",
                                       aspectRatio: "1:1",
                                     },
                                   ].map((placement) => (
@@ -1063,7 +1057,6 @@ export default function AdvertiserDashboard() {
                                         setNewCampaign({
                                           ...newCampaign,
                                           placement: placement.value as any,
-                                          size: placement.size as any,
                                         })
                                       }
                                     >
@@ -1144,7 +1137,7 @@ export default function AdvertiserDashboard() {
                                           {placement.label}
                                         </p>
                                         <p className="text-xs text-gray-500">
-                                          {placement.size} •{" "}
+                                          {newCampaign.size || "medium"} •{" "}
                                           {placement.aspectRatio}
                                         </p>
                                       </div>
@@ -1161,28 +1154,64 @@ export default function AdvertiserDashboard() {
                                 </div>
                               </div>
 
-                              {/* Media Type Selection */}
-                              <div className="space-y-2">
-                                <Label htmlFor="mediaType">Media Type</Label>
-                                <Select
-                                  value={newCampaign.mediaType}
-                                  onValueChange={(value) =>
-                                    setNewCampaign({
-                                      ...newCampaign,
-                                      mediaType: value as any,
-                                    })
-                                  }
-                                >
-                                  <SelectTrigger>
-                                    <SelectValue />
-                                  </SelectTrigger>
-                                  <SelectContent>
-                                    <SelectItem value="image">Image</SelectItem>
-                                    <SelectItem value="gif">GIF</SelectItem>
-                                    <SelectItem value="video">Video</SelectItem>
-                                    <SelectItem value="html">HTML</SelectItem>
-                                  </SelectContent>
-                                </Select>
+                              {/* Size and Media Type Selection */}
+                              <div className="grid grid-cols-2 gap-4">
+                                <div className="space-y-2">
+                                  <Label htmlFor="size">Ad Size</Label>
+                                  <Select
+                                    value={newCampaign.size}
+                                    onValueChange={(value) =>
+                                      setNewCampaign({
+                                        ...newCampaign,
+                                        size: value as any,
+                                      })
+                                    }
+                                  >
+                                    <SelectTrigger>
+                                      <SelectValue />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                      <SelectItem value="small">
+                                        Small (Compact)
+                                      </SelectItem>
+                                      <SelectItem value="medium">
+                                        Medium (Standard)
+                                      </SelectItem>
+                                      <SelectItem value="large">
+                                        Large (Featured)
+                                      </SelectItem>
+                                      <SelectItem value="extra-large">
+                                        Extra Large (Premium)
+                                      </SelectItem>
+                                    </SelectContent>
+                                  </Select>
+                                </div>
+                                <div className="space-y-2">
+                                  <Label htmlFor="mediaType">Media Type</Label>
+                                  <Select
+                                    value={newCampaign.mediaType}
+                                    onValueChange={(value) =>
+                                      setNewCampaign({
+                                        ...newCampaign,
+                                        mediaType: value as any,
+                                      })
+                                    }
+                                  >
+                                    <SelectTrigger>
+                                      <SelectValue />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                      <SelectItem value="image">
+                                        Image
+                                      </SelectItem>
+                                      <SelectItem value="gif">GIF</SelectItem>
+                                      <SelectItem value="video">
+                                        Video
+                                      </SelectItem>
+                                      <SelectItem value="html">HTML</SelectItem>
+                                    </SelectContent>
+                                  </Select>
+                                </div>
                               </div>
                             </div>
 
